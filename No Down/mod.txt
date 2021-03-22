@@ -1,0 +1,15 @@
+{
+	"blt_version" : 2,
+    "name" : "No Down",
+    "description" : "Adds a No Down modifier.",
+    "author" : "powware",
+    "contact" : "https://github.com/powware",
+    "version" : "1.0",
+	"color" : "0.1 1 0.5",
+	"hooks" : [
+		{ 	
+			"hook_id" : "lib/network/handlers/unitnetworkhandler", 
+			"script_path" : "main.lua"
+		}
+	]		
+}
