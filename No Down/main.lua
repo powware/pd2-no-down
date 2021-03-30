@@ -1,4 +1,5 @@
 NoDown = NoDown or {}
+NoDown.default_settings = {confirmed_peers = {}}
 NoDown.description =
     "This lobby has the No Down modifier active. You won't bleed out and instead go to custody immediately. Nine lives aced does not help, so medbags will only heal. Uppers is enabled. Cloakers and Tasers will only incapacitate you."
 NoDown.confirmation_request =
@@ -6,10 +7,67 @@ NoDown.confirmation_request =
 NoDown.timeout_reason = "Timed out confirming No Down."
 NoDown.confirmation_confirmation = "You confirmed to play with the No Down Modifier."
 NoDown.confirmation_reminder = 'Type "confirm" to start playing with the No Down Modifier active.'
-NoDown.confirmed_peers = {}
+
+NoDown._mod_path = ModPath
+NoDown._options_menu_file = NoDown._mod_path .. "menu/options.json"
+NoDown._save_path = SavePath
+NoDown._save_file = NoDown._save_path .. "no_down.json"
+
+local function deep_copy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == "table" then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deep_copy(orig_key)] = deep_copy(orig_value)
+        end
+        setmetatable(copy, deep_copy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+function NoDown:Setup()
+    if not self.settings then
+        self:Load()
+    end
+
+    self.SetupHooks()
+end
+
+-- load settings from file
+function NoDown:Load()
+    self.settings = deep_copy(self.default_settings)
+    local file = io.open(self._save_file, "r")
+    if file then
+        local data = file:read("*a")
+        if data then
+            local decoded_data = json.decode(data)
+
+            if decoded_data then
+                for key, value in pairs(self.settings) do
+                    if decoded_data[key] ~= nil then
+                        self.settings[key] = deep_copy(decoded_data[key])
+                    end
+                end
+            end
+        end
+        file:close()
+    end
+end
+
+-- save settings to file
+function NoDown:Save()
+    local file = io.open(self._save_file, "w+")
+    if file then
+        file:write(json.encode(self.settings))
+        file:close()
+    end
+end
 
 function NoDown.RequestConfirmation(peer)
-    if NoDown.confirmed_peers[peer._user_id] then
+    if NoDown.settings.confirmed_peers[peer._user_id] then
         return
     end
 
@@ -32,7 +90,7 @@ function NoDown.RequestConfirmation(peer)
         30,
         function()
             local temp_peer = managers.network:session() and managers.network:session():peer(peer_id)
-            if temp_peer and not NoDown.confirmed_peers[temp_peer._user_id] then
+            if temp_peer and not NoDown.settings.confirmed_peers[temp_peer._user_id] then
                 managers.network:session():remove_peer(temp_peer, peer:id(), NoDown.timeout_reason)
             end
         end
@@ -252,7 +310,7 @@ function NoDown.SetupHooks()
             peer:set_loading(state)
 
             if not state then
-                if not NoDown.confirmed_peers[peer._user_id] then
+                if not NoDown.settings.confirmed_peers[peer._user_id] then
                     NoDown.RequestConfirmation(peer)
                 else
                     self:set_peer_loading_state_after_confirmation(peer)
@@ -309,7 +367,7 @@ function NoDown.SetupHooks()
             "set_waiting_for_player_ready",
             "NoDown_ConnectionNetworkHandler_set_waiting",
             function(self, state)
-                if Network:is_server() and not NoDown.confirmed_peers[self._user_id] then
+                if Network:is_server() and not NoDown.settings.confirmed_peers[self._user_id] then
                     self:send("send_chat_message", ChatManager.GAME, NoDown.confirmation_reminder)
                 end
             end
@@ -322,9 +380,10 @@ function NoDown.SetupHooks()
                 return
             end
 
-            if not NoDown.confirmed_peers[peer._user_id] then
+            if not NoDown.settings.confirmed_peers[peer._user_id] then
                 if message == "confirm" or message == '"confirm"' then
-                    NoDown.confirmed_peers[peer._user_id] = true
+                    NoDown.settings.confirmed_peers[peer._user_id] = true
+                    NoDown:Save()
 
                     managers.chat:_receive_message(
                         1,
@@ -348,4 +407,4 @@ function NoDown.SetupHooks()
     end
 end
 
-NoDown.SetupHooks()
+NoDown:Setup()
