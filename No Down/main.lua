@@ -1,12 +1,10 @@
 NoDown = NoDown or {}
 NoDown.default_settings = {confirmed_peers = {}}
-NoDown.description =
-    "This lobby has the No Down modifier active. You won't bleed out and instead go to custody immediately. Nine lives aced does not help, so medbags will only heal. Uppers is enabled. Cloakers and Tasers will only incapacitate you."
-NoDown.confirmation_request =
-    'To confirm that you have read the above and want to play under these conditions type "confirm" in the chat. Otherwise you will be automatically kicked in 30s.'
-NoDown.timeout_reason = "Timed out confirming No Down."
+NoDown.description = "No Down modifier enabled: You won't bleed out and instead go to custody immediately."
+NoDown.confirmation_request = 'Type "confirm" in chat to play. Otherwise you will be automatically kicked in 30s.'
 NoDown.confirmation_confirmation = "You confirmed to play with the No Down Modifier."
-NoDown.confirmation_reminder = 'Type "confirm" to start playing with the No Down Modifier active.'
+NoDown.confirmation_reminder = 'Type "confirm" to start playing with the No Down Modifier enabled.'
+NoDown.no_down_reminder = "No Down Modifier enabled."
 
 NoDown._mod_path = ModPath
 NoDown._options_menu_file = NoDown._mod_path .. "menu/options.json"
@@ -29,6 +27,8 @@ local function deep_copy(orig)
 end
 
 function NoDown:Setup()
+    Global.game_settings.no_down = true
+
     if not self.settings then
         self:Load()
     end
@@ -66,32 +66,34 @@ function NoDown:Save()
     end
 end
 
-function NoDown.RequestConfirmation(peer)
-    if NoDown.settings.confirmed_peers[peer._user_id] then
-        return
-    end
-
+function NoDown.AnnounceNoDown(peer)
     local peer_id = peer:id()
 
     DelayedCalls:Add(
         "NoDown_AnnouncementFor" .. tostring(peer_id),
-        2,
+        3,
         function()
             local temp_peer = managers.network:session() and managers.network:session():peer(peer_id)
-            if temp_peer then
+            if not NoDown.settings.confirmed_peers[peer._user_id] then
                 temp_peer:send("send_chat_message", ChatManager.GAME, NoDown.description)
                 temp_peer:send("send_chat_message", ChatManager.GAME, NoDown.confirmation_request)
+            else
+                temp_peer:send("send_chat_message", ChatManager.GAME, NoDown.no_down_reminder)
             end
         end
     )
+end
+
+function NoDown.RequestConfirmation(peer)
+    local peer_id = peer:id()
 
     DelayedCalls:Add(
         "NoDown_ConfirmationTimeoutFor" .. tostring(peer_id),
-        30,
+        33,
         function()
             local temp_peer = managers.network:session() and managers.network:session():peer(peer_id)
             if temp_peer and not NoDown.settings.confirmed_peers[temp_peer._user_id] then
-                managers.network:session():remove_peer(temp_peer, peer:id(), NoDown.timeout_reason)
+                managers.network:session():remove_peer(temp_peer, peer:id())
             end
         end
     )
@@ -278,16 +280,6 @@ function NoDown.SetupHooks()
 
             self:on_downed()
         end
-    elseif RequiredScript == "lib/network/base/networkmanager" then
-        Hooks:Add(
-            "NetworkManagerOnPeerAdded",
-            "NoDown_NetworkManagerOnPeerAdded",
-            function(peer, peer_id)
-                if Network:is_server() then
-                    NoDown.RequestConfirmation(peer)
-                end
-            end
-        )
     elseif RequiredScript == "lib/network/base/hostnetworksession" then
         function HostNetworkSession:set_peer_loading_state(peer, state, load_counter)
             print("[HostNetworkSession:set_peer_loading_state]", peer:id(), state, load_counter)
@@ -310,11 +302,17 @@ function NoDown.SetupHooks()
             peer:set_loading(state)
 
             if not state then
-                if not NoDown.settings.confirmed_peers[peer._user_id] then
-                    NoDown.RequestConfirmation(peer)
-                else
-                    self:set_peer_loading_state_after_confirmation(peer)
+                if Global.game_settings.no_down then
+                    if not NoDown.settings.confirmed_peers[peer._user_id] then
+                        NoDown.AnnounceNoDown(peer)
+                        NoDown.RequestConfirmation(peer)
+                        return
+                    else
+                        NoDown.AnnounceNoDown(peer)
+                    end
                 end
+
+                self:set_peer_loading_state_after_confirmation(peer)
             end
         end
 
@@ -367,7 +365,11 @@ function NoDown.SetupHooks()
             "set_waiting_for_player_ready",
             "NoDown_ConnectionNetworkHandler_set_waiting",
             function(self, state)
-                if Network:is_server() and not NoDown.settings.confirmed_peers[self._user_id] then
+                if
+                    Network:is_server() and Global.game_settings.no_down and
+                        not NoDown.settings.confirmed_peers[self._user_id] and
+                        state
+                 then
                     self:send("send_chat_message", ChatManager.GAME, NoDown.confirmation_reminder)
                 end
             end
@@ -380,25 +382,19 @@ function NoDown.SetupHooks()
                 return
             end
 
-            if not NoDown.settings.confirmed_peers[peer._user_id] then
+            if
+                Network:is_server() and Global.game_settings.no_down and
+                    not NoDown.settings.confirmed_peers[peer._user_id]
+             then
                 if message == "confirm" or message == '"confirm"' then
                     NoDown.settings.confirmed_peers[peer._user_id] = true
                     NoDown:Save()
-
-                    managers.chat:_receive_message(
-                        1,
-                        "SYSTEM",
-                        peer:name() .. " confirmed to play.",
-                        tweak_data.system_chat_color
-                    )
 
                     peer:send("send_chat_message", ChatManager.GAME, NoDown.confirmation_confirmation)
 
                     managers.network:session():set_peer_loading_state_after_confirmation(peer)
 
                     return
-                else
-                    peer:send("send_chat_message", ChatManager.GAME, NoDown.confirmation_reminder)
                 end
             end
 
