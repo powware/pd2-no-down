@@ -1,15 +1,17 @@
 NoDown = NoDown or {}
-NoDown.default_settings = {confirmed_peers = {}}
+NoDown.default_settings = {confirmed_peers = {}, enabled = false}
 NoDown.description = "No Down modifier enabled: You won't bleed out and instead go to custody immediately."
-NoDown.confirmation_request = 'Type "confirm" in chat to play. Otherwise you will be automatically kicked in 30s.'
-NoDown.confirmation_confirmation = "You confirmed to play with the No Down Modifier."
+NoDown.confirmation_request = 'Type "confirm" to start playing, you will automatically be kicked in 30s otherwise.'
 NoDown.confirmation_reminder = 'Type "confirm" to start playing with the No Down Modifier enabled.'
+NoDown.confirmation_confirmation = "You confirmed to play with the No Down Modifier."
 NoDown.no_down_reminder = "No Down Modifier enabled."
 
 NoDown._mod_path = ModPath
 NoDown._options_menu_file = NoDown._mod_path .. "menu/options.json"
 NoDown._save_path = SavePath
 NoDown._save_file = NoDown._save_path .. "no_down.json"
+NoDown.toggle_one_downs = {}
+NoDown.toggle_no_downs = {}
 
 local function deep_copy(orig)
     local orig_type = type(orig)
@@ -27,8 +29,6 @@ local function deep_copy(orig)
 end
 
 function NoDown:Setup()
-    Global.game_settings.no_down = true
-
     if not self.settings then
         self:Load()
     end
@@ -66,25 +66,40 @@ function NoDown:Save()
     end
 end
 
-function NoDown.AnnounceNoDown(peer)
+function NoDown.SendAnnouncement(peer)
     local peer_id = peer:id()
-
-    DelayedCalls:Add(
-        "NoDown_AnnouncementFor" .. tostring(peer_id),
-        3,
-        function()
-            local temp_peer = managers.network:session() and managers.network:session():peer(peer_id)
-            if not NoDown.settings.confirmed_peers[peer._user_id] then
-                temp_peer:send("send_chat_message", ChatManager.GAME, NoDown.description)
-                temp_peer:send("send_chat_message", ChatManager.GAME, NoDown.confirmation_request)
-            else
-                temp_peer:send("send_chat_message", ChatManager.GAME, NoDown.no_down_reminder)
+    local confirmed = NoDown.settings.confirmed_peers[peer._user_id] ~= nil
+    if confirmed then
+        DelayedCalls:Add(
+            "NoDown_AnnouncementFor" .. tostring(peer_id),
+            3,
+            function()
+                local temp_peer = managers.network:session() and managers.network:session():peer(peer_id)
+                if temp_peer then
+                    temp_peer:send("send_chat_message", ChatManager.GAME, NoDown.no_down_reminder)
+                end
             end
-        end
-    )
+        )
+    else
+        DelayedCalls:Add(
+            "NoDown_AnnouncementFor" .. tostring(peer_id),
+            3,
+            function()
+                local temp_peer = managers.network:session() and managers.network:session():peer(peer_id)
+                if temp_peer then
+                    temp_peer:send("send_chat_message", ChatManager.GAME, NoDown.description)
+                    temp_peer:send("send_chat_message", ChatManager.GAME, NoDown.confirmation_request)
+                end
+            end
+        )
+
+        NoDown.AddConfirmationTimeout(peer)
+    end
+
+    return confirmed
 end
 
-function NoDown.RequestConfirmation(peer)
+function NoDown.AddConfirmationTimeout(peer)
     local peer_id = peer:id()
 
     DelayedCalls:Add(
@@ -93,7 +108,7 @@ function NoDown.RequestConfirmation(peer)
         function()
             local temp_peer = managers.network:session() and managers.network:session():peer(peer_id)
             if temp_peer and not NoDown.settings.confirmed_peers[temp_peer._user_id] then
-                managers.network:session():remove_peer(temp_peer, peer:id())
+                managers.network:session():remove_peer(temp_peer, temp_peer:id())
             end
         end
     )
@@ -258,7 +273,7 @@ function NoDown.SetupHooks()
             function(self, settings)
                 local attributes = managers.network.matchmake._lobby_attributes
                 if attributes then
-                    attributes.no_down = true
+                    attributes.no_down = Global.game_settings.no_down and 1 or 0
                     managers.network.matchmake.lobby_handler:set_lobby_data(attributes)
                 end
             end
@@ -275,11 +290,14 @@ function NoDown.SetupHooks()
             end
         )
 
-        function PlayerDamage:on_incapacitated()
-            self._incapacitated = true
-
-            self:on_downed()
-        end
+        Hooks:PreHook(
+            PlayerDamage,
+            "on_incapacitated",
+            "NoDown_PlayerDamage_on_incapacitated",
+            function(self)
+                self._incapacitated = true
+            end
+        )
     elseif RequiredScript == "lib/network/base/hostnetworksession" then
         function HostNetworkSession:set_peer_loading_state(peer, state, load_counter)
             print("[HostNetworkSession:set_peer_loading_state]", peer:id(), state, load_counter)
@@ -303,20 +321,16 @@ function NoDown.SetupHooks()
 
             if not state then
                 if Global.game_settings.no_down then
-                    if not NoDown.settings.confirmed_peers[peer._user_id] then
-                        NoDown.AnnounceNoDown(peer)
-                        NoDown.RequestConfirmation(peer)
+                    if not NoDown.SendAnnouncement(peer) then
                         return
-                    else
-                        NoDown.AnnounceNoDown(peer)
                     end
                 end
 
-                self:set_peer_loading_state_after_confirmation(peer)
+                self:_set_peer_loading_state(peer)
             end
         end
 
-        function HostNetworkSession:set_peer_loading_state_after_confirmation(peer)
+        function HostNetworkSession:_set_peer_loading_state(peer)
             for other_peer_id, other_peer in pairs(self._peers) do
                 if other_peer ~= peer and peer:handshakes()[other_peer_id] == true then
                     peer:send_after_load(
@@ -363,43 +377,154 @@ function NoDown.SetupHooks()
         Hooks:PostHook(
             NetworkPeer,
             "set_waiting_for_player_ready",
-            "NoDown_ConnectionNetworkHandler_set_waiting",
+            "NoDown_NetworkPeer_set_waiting_for_player_ready",
             function(self, state)
                 if
                     Network:is_server() and Global.game_settings.no_down and
                         not NoDown.settings.confirmed_peers[self._user_id] and
-                        state
+                        not state
                  then
                     self:send("send_chat_message", ChatManager.GAME, NoDown.confirmation_reminder)
                 end
             end
         )
     elseif RequiredScript == "lib/network/base/handlers/connectionnetworkhandler" then
-        function ConnectionNetworkHandler:send_chat_message(channel_id, message, sender)
-            local peer = self._verify_sender(sender)
+        Hooks:PostHook(
+            ConnectionNetworkHandler,
+            "send_chat_message",
+            "NoDown_ConnectionNetworkHandler_send_chat_message",
+            function(self, channel_id, message, sender)
+                local peer = self._verify_sender(sender)
 
-            if not peer then
-                return
-            end
-
-            if
-                Network:is_server() and Global.game_settings.no_down and
-                    not NoDown.settings.confirmed_peers[peer._user_id]
-             then
-                if message == "confirm" or message == '"confirm"' then
-                    NoDown.settings.confirmed_peers[peer._user_id] = true
-                    NoDown:Save()
-
-                    peer:send("send_chat_message", ChatManager.GAME, NoDown.confirmation_confirmation)
-
-                    managers.network:session():set_peer_loading_state_after_confirmation(peer)
-
+                if not peer then
                     return
+                end
+
+                if
+                    Network:is_server() and Global.game_settings.no_down and
+                        not NoDown.settings.confirmed_peers[peer._user_id]
+                 then
+                    if message == "confirm" or message == '"confirm"' then
+                        NoDown.settings.confirmed_peers[peer._user_id] = true
+                        NoDown:Save()
+
+                        peer:send("send_chat_message", ChatManager.GAME, NoDown.confirmation_confirmation)
+
+                        managers.network:session():_set_peer_loading_state(peer)
+                    end
+                end
+            end
+        )
+    elseif RequiredScript == "lib/managers/menu/crimenetcontractgui" then
+        function CrimeNetContractGui:set_no_down(no_down)
+            local job_data = self._node:parameters().menu_component_data
+            job_data.no_down = no_down
+
+            NoDown.settings.enabled = no_down
+            NoDown:Save()
+        end
+    elseif RequiredScript == "lib/managers/menu/menucomponentmanager" then
+        function MenuComponentManager:set_crimenet_contract_no_down(no_down)
+            if self._crimenet_contract_gui then
+                self._crimenet_contract_gui:set_no_down(no_down)
+            end
+        end
+    elseif RequiredScript == "lib/managers/menumanager" then
+        Hooks:PostHook(
+            MenuCallbackHandler,
+            "start_job",
+            "NoDown_MenuCallbackHandler_start_job",
+            function(job_data)
+                Global.game_settings.no_down = job_data.no_down
+            end
+        )
+
+        Hooks:PostHook(
+            MenuCallbackHandler,
+            "start_single_player_job",
+            "NoDown_MenuCallbackHandler_start_single_player_job",
+            function(job_data)
+                Global.game_settings.no_down = job_data.no_down
+            end
+        )
+
+        function MenuCallbackHandler:choice_crimenet_no_down(item)
+            local no_down = item:value() == "on"
+
+            if no_down then
+                for _, toggle_one_down in pairs(NoDown.toggle_one_downs) do
+                    toggle_one_down:set_value("on")
+                    MenuCallbackHandler:choice_crimenet_one_down(toggle_one_down)
                 end
             end
 
-            managers.chat:receive_message_by_peer(channel_id, peer, message)
+            managers.menu_component:set_crimenet_contract_no_down(no_down)
         end
+    elseif RequiredScript == "core/lib/managers/menu/coremenunode" then
+        local temp_no_down = NoDown
+        core:module("CoreMenuNode")
+        Hooks:PreHook(
+            MenuNode,
+            "add_item",
+            "NoDown_MenuNode_add_item",
+            function(self, item)
+                if
+                    (self._parameters.name == "crimenet_contract_host" or
+                        self._parameters.name == "crimenet_contract_singleplayer")
+                 then
+                    if item:name() == "divider_test2" then
+                        local params = {
+                            callback = "choice_crimenet_no_down",
+                            name = "toggle_no_down",
+                            text_id = "menu_toggle_no_down",
+                            type = "CoreMenuItemToggle.ItemToggle",
+                            visible_callback = "customize_contract"
+                        }
+                        local data_node = {
+                            {
+                                w = "24",
+                                y = "0",
+                                h = "24",
+                                s_y = "24",
+                                value = "on",
+                                s_w = "24",
+                                s_h = "24",
+                                s_x = "24",
+                                _meta = "option",
+                                icon = "guis/textures/menu_tickbox",
+                                x = "24",
+                                s_icon = "guis/textures/menu_tickbox"
+                            },
+                            {
+                                w = "24",
+                                y = "0",
+                                h = "24",
+                                s_y = "24",
+                                value = "off",
+                                s_w = "24",
+                                s_h = "24",
+                                s_x = "0",
+                                _meta = "option",
+                                icon = "guis/textures/menu_tickbox",
+                                x = "0",
+                                s_icon = "guis/textures/menu_tickbox"
+                            },
+                            type = "CoreMenuItemToggle.ItemToggle"
+                        }
+                        local toggle_no_down = self:create_item(data_node, params)
+
+                        toggle_no_down:set_value("off")
+                        toggle_no_down:set_enabled(true)
+
+                        self:add_item(toggle_no_down)
+                        temp_no_down.toggle_no_downs[self._parameters.name] = toggle_no_down
+                    elseif item:name() == "toggle_one_down" then
+                        temp_no_down.toggle_one_downs[self._parameters.name] = item
+                    end
+                end
+            end
+        )
+    elseif RequiredScript == "lib/managers/crimenetmanager" then
     end
 end
 

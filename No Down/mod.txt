@@ -6,6 +6,7 @@
     "contact" : "https://github.com/powware",
     "version" : "1.0",
 	"color" : "0.1 1 0.5",
+	"priority" : 101,
 	"hooks" : [
 		{ 	
 			"hook_id" : "lib/network/handlers/unitnetworkhandler", 
@@ -29,6 +30,26 @@
 		},
 		{ 	
 			"hook_id" : "lib/network/base/handlers/connectionnetworkhandler", 
+			"script_path" : "main.lua"
+		},
+		{ 	
+			"hook_id" : "lib/managers/menu/crimenetcontractgui", 
+			"script_path" : "main.lua"
+		},
+		{ 	
+			"hook_id" : "lib/managers/menu/menucomponentmanager", 
+			"script_path" : "main.lua"
+		},
+		{ 	
+			"hook_id" : "lib/managers/menumanager", 
+			"script_path" : "main.lua"
+		},
+		{ 	
+			"hook_id" : "core/lib/managers/menu/coremenunode", 
+			"script_path" : "main.lua"
+		},
+		{ 	
+			"hook_id" : "lib/managers/crimenetmanager" , 
 			"script_path" : "main.lua"
 		}
 	]		
