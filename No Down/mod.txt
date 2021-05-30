@@ -45,11 +45,27 @@
 			"script_path" : "main.lua"
 		},
 		{ 	
+			"hook_id" : "lib/managers/menumanagerpd2", 
+			"script_path" : "main.lua"
+		},
+		{ 	
 			"hook_id" : "core/lib/managers/menu/coremenunode", 
 			"script_path" : "main.lua"
 		},
 		{ 	
-			"hook_id" : "lib/managers/crimenetmanager" , 
+			"hook_id" : "lib/managers/menu/contractboxgui", 
+			"script_path" : "main.lua"
+		},
+		{ 	
+			"hook_id" : "lib/managers/menu/crimenetcontractgui", 
+			"script_path" : "main.lua"
+		},
+		{ 	
+			"hook_id" : "lib/managers/hud/hudmissionbriefing", 
+			"script_path" : "main.lua"
+		},
+		{ 	
+			"hook_id" : "lib/managers/menu/ingamecontractgui", 
 			"script_path" : "main.lua"
 		}
 	]		
