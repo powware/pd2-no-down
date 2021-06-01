@@ -51,10 +51,6 @@ function CrimeNetManager:_find_online_games_win32(friends_only)
                 local num_plrs = attributes_numbers[5]
                 local is_friend = friend_ids[room.room_id] or false
 
-                if attribute_list[i].no_down then
-                    log(host_name)
-                end
-
                 if name_id then
                     if not self._active_server_jobs[room.room_id] then
                         if
