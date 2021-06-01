@@ -473,6 +473,10 @@ function NoDown.SetupHooks()
             "NetworkManagerOnPeerAdded",
             "NoDown_ NetworkManagerOnPeerAdded",
             function(peer, peer_id)
+                if not Network:is_host() then
+                    return
+                end
+
                 DelayedCalls:Add(
                     "NoDown_NotifyNoDown" .. tostring(peer_id),
                     1.5,
@@ -532,7 +536,7 @@ function NoDown.SetupHooks()
             "NetworkReceivedData",
             "NoDown_sync_game_settings_no_down",
             function(peer_id, id, no_down)
-                if id == "sync_game_settings_no_down" then
+                if id == "sync_game_settings_no_down" and Network:is_client() then
                     Global.game_settings.no_down = no_down == "true"
 
                     if managers.hud and managers.hud._hud_mission_briefing then
