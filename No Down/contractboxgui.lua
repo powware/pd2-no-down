@@ -11,6 +11,10 @@ function ContractBoxGui:apply_no_down()
 
     local difficulty_text = self._contract_panel:children()[8]
 
+    if not difficulty_text then
+        return
+    end
+
     difficulty_text:set_text(text_string)
     difficulty_text:set_range_color(utf8.len(difficulty_string) + 1, utf8.len(text_string), NoDown.color)
 end
