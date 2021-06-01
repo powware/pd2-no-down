@@ -10,7 +10,6 @@ function ContractBoxGui:apply_no_down()
     local text_string = difficulty_string .. " " .. managers.localization:to_upper_text("no_down_modifier_name")
 
     local difficulty_text = self._contract_panel:children()[8]
-
     if not difficulty_text then
         return
     end

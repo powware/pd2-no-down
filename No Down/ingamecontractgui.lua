@@ -4,6 +4,10 @@ function IngameContractGui:apply_no_down()
     end
 
     local one_down_warning_text = self._panel:children()[2]:child("one_down_warning_text")
+    if not one_down_warning_text then
+        return
+    end
+
     one_down_warning_text:set_text(managers.localization:to_upper_text("no_down_modifier_name"))
     one_down_warning_text:set_color(NoDown.color)
 end

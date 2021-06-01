@@ -1,5 +1,9 @@
 function CrimeNetContractGui:apply_no_down()
     local one_down_warning_text = self._contract_panel:child("one_down_warning_text")
+    if not one_down_warning_text then
+        return
+    end
+
     one_down_warning_text:set_text(managers.localization:to_upper_text("no_down_modifier_name"))
     one_down_warning_text:set_color(NoDown.color)
 end
