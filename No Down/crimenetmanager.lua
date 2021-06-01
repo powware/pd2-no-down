@@ -168,9 +168,10 @@ Hooks:PostHook(
     "NoDown_CrimeNetGui_update_job_gui",
     function(self, job)
         local data = job.server_data
+        job.no_down = data.no_down
         if data.no_down == 1 then
             local one_down_label = job.side_panel:child("one_down_label")
-            one_down_label:set_text("NO DOWN")
+            one_down_label:set_text(managers.localization:to_upper_text("no_down_modifier_name"))
             one_down_label:set_color(NoDown.color)
 
             local one_down_icon = job.icon_panel:child("one_down_icon")

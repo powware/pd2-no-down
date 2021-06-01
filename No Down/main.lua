@@ -14,16 +14,6 @@ NoDown._save_file = NoDown._save_path .. "no_down.json"
 NoDown.toggle_one_downs = {}
 NoDown.toggle_no_downs = {}
 
-function NoDown.SendToPeer_after_load(peer, type_prm, data)
-    local dataString = LuaNetworking.SinglePeerString
-    dataString = dataString:gsub("{1}", LuaNetworking.SinglePeer)
-    dataString = dataString:gsub("{2}", peer:id())
-    dataString = dataString:gsub("{3}", type_prm)
-    dataString = dataString:gsub("{4}", data)
-
-    peer:send_after_load("send_chat_message", LuaNetworking.HiddenChannel, dataString)
-end
-
 local function deep_copy(orig)
     local orig_type = type(orig)
     local copy
@@ -78,6 +68,8 @@ function NoDown:Save()
 end
 
 function NoDown.SendAnnouncement(peer)
+    NoDown.SendToPeer_after_load(peer, "sync_game_settings_no_down", "true")
+
     local confirmed = NoDown.settings.confirmed_peers[peer._user_id] ~= nil
     if confirmed then
         peer:send_after_load("send_chat_message", ChatManager.GAME, NoDown.no_down_reminder)
@@ -85,10 +77,12 @@ function NoDown.SendAnnouncement(peer)
         peer:send_after_load("send_chat_message", ChatManager.GAME, NoDown.description)
         peer:send_after_load("send_chat_message", ChatManager.GAME, NoDown.confirmation_request)
 
+        peer._loading_halted = true
+
+        NoDown.SendToPeer_after_load(peer, "request_no_down_confirmation", "request_confirmation")
+
         NoDown.AddConfirmationTimeout(peer)
     end
-
-    NoDown.SendToPeer_after_load(peer, "sync_game_settings_no_down", Global.game_settings.no_down and "true" or "false")
 
     return confirmed
 end
@@ -98,7 +92,7 @@ function NoDown.AddConfirmationTimeout(peer)
 
     DelayedCalls:Add(
         "NoDown_ConfirmationTimeoutFor" .. tostring(peer_id),
-        31,
+        30,
         function()
             local temp_peer = managers.network:session() and managers.network:session():peer(peer_id)
             if temp_peer and not NoDown.settings.confirmed_peers[temp_peer._user_id] then
@@ -106,6 +100,29 @@ function NoDown.AddConfirmationTimeout(peer)
             end
         end
     )
+end
+
+function NoDown.ConfirmPeer(peer)
+    NoDown.settings.confirmed_peers[peer._user_id] = true
+    NoDown:Save()
+
+    if peer._loading_halted then
+        peer:send_after_load("send_chat_message", ChatManager.GAME, NoDown.confirmation_confirmation)
+
+        managers.network:session():_set_peer_loading_state(peer)
+
+        peer._loading_halted = false
+    end
+end
+
+function NoDown.SendToPeer_after_load(peer, type_prm, data)
+    local dataString = LuaNetworking.SinglePeerString
+    dataString = dataString:gsub("{1}", LuaNetworking.SinglePeer)
+    dataString = dataString:gsub("{2}", peer:id())
+    dataString = dataString:gsub("{3}", type_prm)
+    dataString = dataString:gsub("{4}", data)
+
+    peer:send_after_load("send_chat_message", LuaNetworking.HiddenChannel, dataString)
 end
 
 function NoDown.SetupHooks()
@@ -284,7 +301,10 @@ function NoDown.SetupHooks()
             "NetworkManagerOnPeerAdded",
             "NoDown_NetworkManagerOnPeerAdded",
             function(peer, peer_id)
-                -- todo SendAnnouncement
+                log("NoDown_NetworkManagerOnPeerAdded")
+                if Network:is_server() and Global.game_settings.no_down then
+                    NoDown.SendAnnouncement(peer)
+                end
             end
         )
 
@@ -431,12 +451,7 @@ function NoDown.SetupHooks()
                         not NoDown.settings.confirmed_peers[peer._user_id]
                  then
                     if message == "confirm" or message == '"confirm"' then
-                        NoDown.settings.confirmed_peers[peer._user_id] = true
-                        NoDown:Save()
-
-                        peer:send_after_load("send_chat_message", ChatManager.GAME, NoDown.confirmation_confirmation)
-
-                        managers.network:session():_set_peer_loading_state(peer)
+                        NoDown.ConfirmPeer(peer)
                     end
                 end
             end
@@ -465,26 +480,56 @@ function NoDown.SetupHooks()
                 log(tostring(mask_set))
                 local peer = self._verify_sender(sender)
 
-                if not peer or not peer:is_host() then
+                if not peer then
                     return
                 end
 
-                Global.game_settings.no_down = mask_set == "true"
+                if Network:is_server() then
+                    if mask_set ~= "remove" then
+                        NoDown.ConfirmPeer(peer)
+                    end
+                elseif peer:is_host() then
+                    Global.game_settings.no_down = mask_set == "true"
+                end
             end
         )
 
         Hooks:Add(
             "NetworkReceivedData",
             "NoDown_sync_game_settings_no_down",
-            function(sender, id, no_down)
-                log(id)
-
+            function(peer_id, id, no_down)
                 if id == "sync_game_settings_no_down" then
                     Global.game_settings.no_down = no_down == "true"
 
                     if managers.hud and managers.hud._hud_mission_briefing then
-                        managers.hud._hud_mission_briefing:reload()
+                        managers.hud._hud_mission_briefing:apply_no_down()
                     end
+
+                    if managers.menu_component and managers.menu_component._ingame_contract_gui then
+                        managers.menu_component._ingame_contract_gui:apply_no_down()
+                    end
+                end
+            end
+        )
+
+        Hooks:Add(
+            "NetworkReceivedData",
+            "NoDown_request_no_down_confirmation",
+            function(peer_id, id)
+                if id == "request_no_down_confirmation" and Network:is_client() then
+                    local peer = managers.network:session():peer(peer_id)
+                    NoDown.SendToPeer_after_load(peer, "no_down_confirmation", "confirm")
+                end
+            end
+        )
+
+        Hooks:Add(
+            "NetworkReceivedData",
+            "NoDown_no_down_confirmation",
+            function(peer_id, id)
+                if id == "no_down_confirmation" and Network:is_server() then
+                    local peer = managers.network:session():peer(peer_id)
+                    NoDown.ConfirmPeer(peer)
                 end
             end
         )
@@ -618,7 +663,7 @@ function NoDown.SetupHooks()
                         local params = {
                             callback = "choice_crimenet_no_down",
                             name = "toggle_no_down",
-                            text_id = "menu_toggle_no_down",
+                            text_id = "no_down_modifier_name",
                             type = "CoreMenuItemToggle.ItemToggle",
                             visible_callback = "customize_contract"
                         }
