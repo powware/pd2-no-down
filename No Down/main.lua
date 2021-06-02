@@ -310,7 +310,7 @@ function NoDown.SetupHooks()
             else
                 unit:movement():sync_movement_state(state, down_time)
 
-                if Network:is_server() and state == "bleed_out" then
+                if Network:is_server() and Global.game_settings.no_down and state == "bleed_out" then
                     local member_downed,
                         member_dead,
                         health,
