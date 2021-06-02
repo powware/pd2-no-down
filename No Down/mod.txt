@@ -6,18 +6,6 @@
 	"contact": "https://github.com/powware",
 	"version": "1.0",
 	"color": "0.1 1 0.5",
-	"priority": 101,
-	"keybinds": [
-		{
-			"keybind_id": "no_down_log_keybind",
-			"name": "NoDown Log",
-			"description": "An example keybind for demonstration",
-			"script_path": "log.lua",
-			"run_in_menu": true,
-			"run_in_game": true,
-			"localized": false
-		}
-	],
 	"hooks": [
 		{
 			"hook_id": "lib/network/handlers/unitnetworkhandler",
