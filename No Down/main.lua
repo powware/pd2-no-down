@@ -355,10 +355,11 @@ function NoDown.SetupHooks()
             peer:set_loading(state)
 
             if not state then
-                NoDown.SyncGameSettingsNoDown(peer)
+                if not peer._notified_about_no_down then
+                    NoDown.SyncGameSettingsNoDown(peer)
 
-                if Global.game_settings.no_down then
-                    if not peer._notified_about_no_down then
+                    if Global.game_settings.no_down then
+                        peer._notified_about_no_down = true
                         NoDown.AnnounceNoDown(true, peer)
 
                         if not NoDown.IsConfirmed(peer) then
@@ -471,9 +472,9 @@ function NoDown.SetupHooks()
 
         Hooks:Add(
             "NetworkManagerOnPeerAdded",
-            "NoDown_ NetworkManagerOnPeerAdded",
+            "NoDown_NetworkManagerOnPeerAdded",
             function(peer, peer_id)
-                if not Network:is_host() then
+                if not Network:is_server() then
                     return
                 end
 
@@ -557,8 +558,12 @@ function NoDown.SetupHooks()
             "NetworkReceivedData",
             "NoDown_request_no_down_confirmation",
             function(peer_id, id)
-                if id == "request_no_down_confirmation" and Network:is_client() then
+                if id == "request_no_down_confirmation" then
                     local peer = managers.network:session():peer(peer_id)
+                    if not peer:is_host() then
+                        return
+                    end
+
                     NoDown.SendConfirmation(peer)
                 end
             end
@@ -584,6 +589,7 @@ function NoDown.SetupHooks()
             "lobby_info",
             "NoDown_ConnectionNetworkHandler_lobby_info",
             function(self, level, rank, stinger_index, character, mask_set, sender)
+                log("mask_set " .. mask_set)
                 local peer = self._verify_sender(sender)
 
                 if not peer then
