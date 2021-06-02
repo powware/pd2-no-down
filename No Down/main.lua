@@ -646,8 +646,6 @@ function NoDown.SetupHooks()
 
                 Global.game_settings.no_down = job_data.no_down
 
-                NoDown.ApplyNoDown()
-
                 if Network:is_server() then
                     NoDown.SyncGameSettingsNoDown()
                     if Global.game_settings.no_down then
@@ -666,8 +664,6 @@ function NoDown.SetupHooks()
             "NoDown_MenuCallbackHandler_start_single_player_job",
             function(self, job_data)
                 Global.game_settings.no_down = job_data.no_down
-
-                NoDown.ApplyNoDown()
             end
         )
     elseif RequiredScript == "lib/managers/crimespreemanager" then
