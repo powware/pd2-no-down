@@ -1,11 +1,5 @@
 NoDown = NoDown or {}
 NoDown.default_settings = {confirmed_peers = {}}
-NoDown.description = "This means you won't bleed out and instead go to custody immediately."
-NoDown.confirmation_request = 'Type "confirm" to start playing, you will automatically be kicked in 30s otherwise.'
-NoDown.confirmation_reminder = 'Type "confirm" to start playing with the No Down modifier enabled.'
-NoDown.confirmation_confirmation = "You confirmed to play with the No Down modifier."
-NoDown.no_down_enabled = "No Down modifier enabled."
-NoDown.no_down_disabled = "No Down modifier disabled."
 NoDown.color = Color(1, 0.1, 1, 0.5)
 
 NoDown._mod_path = ModPath
@@ -82,7 +76,8 @@ function NoDown.AnnounceNoDown(peer)
         peer:send_after_load(
             "send_chat_message",
             ChatManager.GAME,
-            Global.game_settings.no_down and NoDown.no_down_enabled or NoDown.no_down_disabled
+            Global.game_settings.no_down and managers.localization:text("no_down_announcement_enabled") or
+                managers.localization:text("no_down_announcement_disabled")
         )
     else
         local peers = managers.network:session():peers()
@@ -100,8 +95,12 @@ function NoDown.RequestConfirmation(peer)
             return
         end
 
-        peer:send_after_load("send_chat_message", ChatManager.GAME, NoDown.description)
-        peer:send_after_load("send_chat_message", ChatManager.GAME, NoDown.confirmation_request)
+        peer:send_after_load("send_chat_message", ChatManager.GAME, managers.localization:text("no_down_description"))
+        peer:send_after_load(
+            "send_chat_message",
+            ChatManager.GAME,
+            managers.localization:text("no_down_confirmation_request")
+        )
 
         local peer_id = peer:id()
 
@@ -132,7 +131,11 @@ function NoDown.RequestConfirmation(peer)
 end
 
 function NoDown.RemindConfirmation(peer)
-    peer:send_after_load("send_chat_message", ChatManager.GAME, NoDown.confirmation_reminder)
+    peer:send_after_load(
+        "send_chat_message",
+        ChatManager.GAME,
+        managers.localization:text("no_down_confirmation_reminder")
+    )
 end
 
 function NoDown.IsConfirmed(peer)
@@ -148,7 +151,11 @@ function NoDown.Confirm(peer, has_no_down)
     NoDown:Save()
 
     if not has_no_down then
-        peer:send_after_load("send_chat_message", ChatManager.GAME, NoDown.confirmation_confirmation)
+        peer:send_after_load(
+            "send_chat_message",
+            ChatManager.GAME,
+            managers.localization:text("no_down_confirmation_confirmation")
+        )
     end
 
     managers.chat:_receive_message(
@@ -487,7 +494,6 @@ function NoDown.SetupHooks()
             local join_stinger_index = managers.infamy:selected_join_stinger_index()
             local character = local_peer:character()
             local progress = managers.upgrades:progress()
-            local mask_set = "remove"
 
             self:_set_player_slot(
                 local_peer_id,
@@ -525,7 +531,7 @@ function NoDown.SetupHooks()
                 end
 
                 if Network:is_server() and Global.game_settings.no_down and not NoDown.IsConfirmed(peer) then
-                    if message == "confirm" or message == '"confirm"' then
+                    if message == "confirm" or message == "'confirm'" then
                         NoDown.Confirm(peer)
                     end
                 end

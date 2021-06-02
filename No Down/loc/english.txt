@@ -1,3 +1,9 @@
 {
-    "no_down_modifier_name": "NO DOWN"
+    "no_down_modifier_name": "NO DOWN",
+    "no_down_description": "Going down will put you into custody. You can still get incapacitated by Cloakers and Tasers. Nine lives is disabled.",
+    "no_down_confirmation_request": "Type 'confirm' to start playing, you will automatically be kicked within 30s otherwise.",
+    "no_down_confirmation_reminder": "Type 'confirm' to start playing with the No Down modifier enabled.",
+    "no_down_confirmation_confirmation": "You confirmed to play with the No Down modifier.",
+    "no_down_announcement_enabled": "No Down modifier enabled.",
+    "no_down_announcement_disabled": "No Down modifier disabled."
 }
