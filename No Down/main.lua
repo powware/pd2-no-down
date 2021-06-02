@@ -168,9 +168,14 @@ function NoDown.ApplyNoDown()
         managers.hud._hud_mission_briefing:apply_no_down()
     end
 
+    if managers.hud and managers.hud._hud_statsscreen then
+        managers.hud._hud_statsscreen:apply_no_down()
+    end
+
     if managers.menu_component and managers.menu_component._ingame_contract_gui then
         managers.menu_component._ingame_contract_gui:apply_no_down()
     end
+
     if managers.menu_component and managers.menu_component._contract_gui then
         managers.menu_component._contract_gui:apply_no_down()
     end
