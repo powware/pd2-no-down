@@ -9,13 +9,18 @@ function ContractBoxGui:apply_no_down()
     local difficulty_string = managers.localization:to_upper_text(difficulty_string_id)
     local text_string = difficulty_string .. " " .. managers.localization:to_upper_text("no_down_modifier_name")
 
-    local difficulty_text = self._contract_panel:children()[8]
-    if not difficulty_text then
-        return
+    for _, child in pairs(self._contract_panel:children()) do
+        if child and child.text then
+            local content = child:text()
+            if type(content) == "string" then
+                if string.find(content, managers.localization:to_upper_text("menu_one_down")) then
+                    child:set_text(text_string)
+                    child:set_range_color(utf8.len(difficulty_string) + 1, utf8.len(text_string), NoDown.color)
+                    return
+                end
+            end
+        end
     end
-
-    difficulty_text:set_text(text_string)
-    difficulty_text:set_range_color(utf8.len(difficulty_string) + 1, utf8.len(text_string), NoDown.color)
 end
 
 Hooks:PostHook(

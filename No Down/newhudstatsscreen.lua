@@ -3,22 +3,27 @@ function HUDStatsScreen:apply_no_down()
 		return
 	end
 
-	local difficulty_text = self._left:children()[7]
-	if not difficulty_text then
-		return
-	end
-
 	local difficulty_stars = managers.job:current_difficulty_stars()
 	local difficulty = tweak_data.difficulties[difficulty_stars + 2] or 1
 	local difficulty_string = managers.localization:to_upper_text(tweak_data.difficulty_name_ids[difficulty])
 	local no_down_string = managers.localization:to_upper_text("no_down_modifier_name")
 
-	difficulty_text:set_text(difficulty_string .. " " .. no_down_string)
-	difficulty_text:set_range_color(#difficulty_string + 1, math.huge, NoDown.color)
+	for _, child in pairs(self._left:children()) do
+		if child and child.text then
+			local content = child:text()
+			if type(content) == "string" then
+				if string.find(content, managers.localization:to_upper_text("menu_one_down")) then
+					child:set_text(difficulty_string .. " " .. no_down_string)
+					child:set_range_color(#difficulty_string + 1, math.huge, NoDown.color)
 
-	local _, _, tw, th = difficulty_text:text_rect()
+					local _, _, tw, th = child:text_rect()
 
-	difficulty_text:set_size(tw, th)
+					child:set_size(tw, th)
+					return
+				end
+			end
+		end
+	end
 end
 
 Hooks:PostHook(
