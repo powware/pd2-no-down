@@ -6,6 +6,14 @@
 	"contact": "https://github.com/powware",
 	"version": "1.0",
 	"color": "0.1 1 0.5",
+	"updates": [
+		{
+			"identifier": "NoDown",
+			"host": {
+				"meta": "https://github.com/powware/pd2-no-down/releases/download/refs%2Fheads%2Fmaster/meta.json"
+			}
+		}
+	],
 	"hooks": [
 		{
 			"hook_id": "lib/network/handlers/unitnetworkhandler",
