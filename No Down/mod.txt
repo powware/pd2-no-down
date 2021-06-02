@@ -40,6 +40,10 @@
 			"script_path": "main.lua"
 		},
 		{
+			"hook_id": "lib/managers/menu/menulobbyrenderer",
+			"script_path": "main.lua"
+		},
+		{
 			"hook_id": "lib/network/base/handlers/connectionnetworkhandler",
 			"script_path": "main.lua"
 		},
