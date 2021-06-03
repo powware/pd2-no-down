@@ -4,7 +4,7 @@
 	"description": "Adds a No Down modifier.",
 	"author": "powware",
 	"contact": "https://github.com/powware",
-	"version": "1.0",
+	"version": "1.1",
 	"color": "0.1 1 0.5",
 	"updates": [
 		{
