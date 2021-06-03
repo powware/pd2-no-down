@@ -1,9 +1,6 @@
 require("lib/managers/menu/WalletGuiObject")
 
-CrimeNetManager = CrimeNetManager or class()
-
 function CrimeNetManager:_find_online_games_win32(friends_only)
-    -- Lines: 1070 to 1226
     local function f(info)
         managers.network.matchmake:search_lobby_done()
 
@@ -15,12 +12,11 @@ function CrimeNetManager:_find_online_games_win32(friends_only)
             dead_list[id] = true
         end
 
+        local friends = {}
         local friends_list = Steam:logged_on() and Steam:friends()
-        local friend_ids = {}
-
         if friends_list then
-            for i, friend in ipairs(friends_list) do
-                friend_ids[friend:id()] = true
+            for _, friend in ipairs(friends_list) do
+                friends[friend:id()] = true
             end
         end
 
@@ -49,7 +45,7 @@ function CrimeNetManager:_find_online_games_win32(friends_only)
                     "UNKNOWN"
                 local state = attributes_numbers[4]
                 local num_plrs = attributes_numbers[5]
-                local is_friend = friend_ids[room.room_id] or false
+                local is_friend = friends[room.owner_id] or false
 
                 if name_id then
                     if not self._active_server_jobs[room.room_id] then
@@ -147,7 +143,6 @@ function CrimeNetManager:_find_online_games_win32(friends_only)
     managers.network.matchmake:register_callback("search_lobby", f)
     managers.network.matchmake:search_lobby(friends_only)
 
-    -- Lines: 1231 to 1235
     local function usrs_f(success, amount)
         if success then
             managers.menu_component:set_crimenet_players_online(amount)
