@@ -11,6 +11,7 @@ NoDown._save_path = SavePath
 NoDown._save_file = NoDown._save_path .. "no_down.json"
 NoDown.toggle_one_downs = {}
 NoDown.toggle_no_downs = {}
+NoDown.toggle_one_down_lobby = nil
 
 local function deep_copy(orig)
     local orig_type = type(orig)
@@ -640,6 +641,10 @@ function NoDown.SetupHooks()
 
         function MenuCallbackHandler:choice_no_down_filter(item)
             NoDown.settings.search_no_down_lobbies = item:value()
+            if NoDown.settings.search_no_down_lobbies ~= 0 then
+                NoDown.toggle_one_down_lobby:set_value("on")
+                MenuCallbackHandler:chocie_one_down_filter(NoDown.toggle_one_down_lobby)
+            end
             NoDown:Save()
         end
 
@@ -797,39 +802,43 @@ function NoDown.SetupHooks()
                     elseif item_name == "toggle_one_down" then
                         temp_no_down.toggle_one_downs[self._parameters.name] = item
                     end
-                elseif self._parameters.name == "crimenet_filters" and item_name == "divider_crime_spree" then
-                    local params = {
-                        callback = "choice_no_down_filter",
-                        name = "choice_no_down_lobby",
-                        text_id = "no_down_choice_no_down_lobbies_filter",
-                        visible_callback = "is_multiplayer is_win32",
-                        filter = true
-                    }
-                    local data_node = {
-                        {
-                            value = 0,
-                            text_id = "no_down_choice_no_down_lobbies_hide",
-                            _meta = "option"
-                        },
-                        {
-                            value = 1,
-                            text_id = "no_down_choice_no_down_lobbies_allow",
-                            _meta = "option"
-                        },
-                        {
-                            value = 2,
-                            text_id = "no_down_choice_no_down_lobbies_only",
-                            _meta = "option"
-                        },
-                        type = "MenuItemMultiChoice"
-                    }
+                elseif self._parameters.name == "crimenet_filters" then
+                    if item_name == "divider_crime_spree" then
+                        local params = {
+                            callback = "choice_no_down_filter",
+                            name = "choice_no_down_lobby",
+                            text_id = "no_down_choice_no_down_lobbies_filter",
+                            visible_callback = "is_multiplayer is_win32",
+                            filter = true
+                        }
+                        local data_node = {
+                            {
+                                value = 0,
+                                text_id = "no_down_choice_no_down_lobbies_hide",
+                                _meta = "option"
+                            },
+                            {
+                                value = 1,
+                                text_id = "no_down_choice_no_down_lobbies_allow",
+                                _meta = "option"
+                            },
+                            {
+                                value = 2,
+                                text_id = "no_down_choice_no_down_lobbies_only",
+                                _meta = "option"
+                            },
+                            type = "MenuItemMultiChoice"
+                        }
 
-                    local multi_choice_no_down_lobbies = self:create_item(data_node, params)
+                        local multi_choice_no_down_lobbies = self:create_item(data_node, params)
 
-                    multi_choice_no_down_lobbies:set_value(temp_no_down.settings.search_no_down_lobbies)
-                    multi_choice_no_down_lobbies:set_enabled(true)
+                        multi_choice_no_down_lobbies:set_value(temp_no_down.settings.search_no_down_lobbies)
+                        multi_choice_no_down_lobbies:set_enabled(true)
 
-                    self:add_item(multi_choice_no_down_lobbies)
+                        self:add_item(multi_choice_no_down_lobbies)
+                    elseif item_name == "toggle_one_down_lobby" then
+                        temp_no_down.toggle_one_down_lobby = item
+                    end
                 end
             end
         )
