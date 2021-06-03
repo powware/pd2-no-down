@@ -9,6 +9,7 @@ function IngameContractGui:apply_no_down()
             if one_down_warning_text then
                 one_down_warning_text:set_text(managers.localization:to_upper_text("no_down_modifier_name"))
                 one_down_warning_text:set_color(NoDown.color)
+                managers.hud:make_fine_text(one_down_warning_text)
                 one_down_warning_text:set_left(10)
             end
         end

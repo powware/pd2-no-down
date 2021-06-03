@@ -6,6 +6,7 @@ function CrimeNetContractGui:apply_no_down()
 
     one_down_warning_text:set_text(managers.localization:to_upper_text("no_down_modifier_name"))
     one_down_warning_text:set_color(NoDown.color)
+    self:make_fine_text(one_down_warning_text)
 end
 
 Hooks:PostHook(

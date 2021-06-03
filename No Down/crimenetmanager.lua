@@ -167,6 +167,10 @@ Hooks:PostHook(
         job.no_down = data.no_down
         if data.no_down == 1 then
             local one_down_label = job.side_panel:child("one_down_label")
+            if not one_down_label then
+                return
+            end
+
             one_down_label:set_text(managers.localization:to_upper_text("no_down_modifier_name"))
             one_down_label:set_color(NoDown.color)
 
