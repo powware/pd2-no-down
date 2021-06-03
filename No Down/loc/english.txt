@@ -5,5 +5,9 @@
     "no_down_confirmation_reminder": "Type 'confirm' to start playing with the No Down modifier enabled.",
     "no_down_confirmation_confirmation": "You confirmed to play with the No Down modifier.",
     "no_down_announcement_enabled": "No Down modifier enabled.",
-    "no_down_announcement_disabled": "No Down modifier disabled."
+    "no_down_announcement_disabled": "No Down modifier disabled.",
+    "no_down_choice_no_down_lobbies_filter": "No Down lobbies",
+    "no_down_choice_no_down_lobbies_hide": "HIDE",
+    "no_down_choice_no_down_lobbies_allow": "ALLOW",
+    "no_down_choice_no_down_lobbies_only": "ONLY"
 }

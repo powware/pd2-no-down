@@ -1,5 +1,8 @@
 NoDown = NoDown or {}
-NoDown.default_settings = {confirmed_peers = {}}
+NoDown.default_settings = {
+    confirmed_peers = {},
+    search_no_down_lobbies = 1
+}
 NoDown.color = Color(1, 0.1, 1, 0.5)
 
 NoDown._mod_path = ModPath
@@ -635,6 +638,22 @@ function NoDown.SetupHooks()
             managers.menu_component:set_crimenet_contract_no_down(no_down)
         end
 
+        function MenuCallbackHandler:choice_no_down_filter(item)
+            NoDown.settings.search_no_down_lobbies = item:value()
+            NoDown:Save()
+        end
+
+        Hooks:PostHook(
+            MenuCrimeNetFiltersInitiator,
+            "modify_node",
+            "NoDown_MenuCrimeNetFiltersInitiator_modify_node",
+            function(self, original_node, data)
+                if MenuCallbackHandler:is_win32() then
+                    original_node:item("choice_no_down_lobby"):set_value(NoDown.settings.search_no_down_lobbies)
+                end
+            end
+        )
+
         Hooks:Add(
             "LocalizationManagerPostInit",
             "NoDown_LocalizationManagerPostInit",
@@ -724,11 +743,12 @@ function NoDown.SetupHooks()
             "add_item",
             "NoDown_MenuNode_add_item",
             function(self, item)
+                local item_name = item:name()
                 if
                     (self._parameters.name == "crimenet_contract_host" or
                         self._parameters.name == "crimenet_contract_singleplayer")
                  then
-                    if item:name() == "divider_test2" then
+                    if item_name == "divider_test2" then
                         local params = {
                             callback = "choice_crimenet_no_down",
                             name = "toggle_no_down",
@@ -774,9 +794,42 @@ function NoDown.SetupHooks()
 
                         self:add_item(toggle_no_down)
                         temp_no_down.toggle_no_downs[self._parameters.name] = toggle_no_down
-                    elseif item:name() == "toggle_one_down" then
+                    elseif item_name == "toggle_one_down" then
                         temp_no_down.toggle_one_downs[self._parameters.name] = item
                     end
+                elseif self._parameters.name == "crimenet_filters" and item_name == "divider_crime_spree" then
+                    local params = {
+                        callback = "choice_no_down_filter",
+                        name = "choice_no_down_lobby",
+                        text_id = "no_down_choice_no_down_lobbies_filter",
+                        visible_callback = "is_multiplayer is_win32",
+                        filter = true
+                    }
+                    local data_node = {
+                        {
+                            value = 0,
+                            text_id = "no_down_choice_no_down_lobbies_hide",
+                            _meta = "option"
+                        },
+                        {
+                            value = 1,
+                            text_id = "no_down_choice_no_down_lobbies_allow",
+                            _meta = "option"
+                        },
+                        {
+                            value = 2,
+                            text_id = "no_down_choice_no_down_lobbies_only",
+                            _meta = "option"
+                        },
+                        type = "MenuItemMultiChoice"
+                    }
+
+                    local multi_choice_no_down_lobbies = self:create_item(data_node, params)
+
+                    multi_choice_no_down_lobbies:set_value(temp_no_down.settings.search_no_down_lobbies)
+                    multi_choice_no_down_lobbies:set_enabled(true)
+
+                    self:add_item(multi_choice_no_down_lobbies)
                 end
             end
         )

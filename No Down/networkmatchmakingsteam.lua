@@ -48,8 +48,9 @@ function NetworkMatchMakingSTEAM:search_lobby(friends_only, no_filters)
             if lobbies then
                 for _, lobby in ipairs(lobbies) do
                     if
-                        self._difficulty_filter == 0 or
-                            self._difficulty_filter == tonumber(lobby:key_value("difficulty"))
+                        (self._difficulty_filter == 0 or
+                            self._difficulty_filter == tonumber(lobby:key_value("difficulty"))) and
+                            (NoDown.settings.search_no_down_lobbies ~= 0 or tonumber(lobby:key_value("no_down")) ~= 1)
                      then
                         table.insert(
                             info.room_list,
@@ -106,6 +107,12 @@ function NetworkMatchMakingSTEAM:search_lobby(friends_only, no_filters)
 
         if self._BUILD_SEARCH_INTEREST_KEY then
             table.insert(interest_keys, self._BUILD_SEARCH_INTEREST_KEY)
+        end
+
+        if NoDown.settings.search_no_down_lobbies == 2 then
+            table.insert(interest_keys, "no_down")
+
+            self.browser:set_lobby_filter("no_down", 1, "equal")
         end
 
         self.browser:set_interest_keys(interest_keys)
