@@ -667,15 +667,22 @@ function NoDown.SetupHooks()
             end
         )
     elseif RequiredScript == "lib/managers/menumanagerpd2" then
-        Hooks:PostHook(
+        Hooks:PreHook(
             MenuCallbackHandler,
             "start_job",
-            "NoDown_MenuCallbackHandler_start_job",
+            "NoDown_MenuCallbackHandler_start_job_pre",
             function(self, job_data)
                 local changed = Global.game_settings.no_down ~= job_data.no_down
 
                 Global.game_settings.no_down = job_data.no_down
+            end
+        )
 
+        Hooks:PostHook(
+            MenuCallbackHandler,
+            "start_job",
+            "NoDown_MenuCallbackHandler_start_job_post",
+            function(self, job_data)
                 if Network:is_server() then
                     NoDown.SyncGameSettingsNoDown()
                     if Global.game_settings.no_down then
