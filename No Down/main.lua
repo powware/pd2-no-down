@@ -183,12 +183,13 @@ function NoDown.ApplyNoDown()
         managers.hud._hud_statsscreen:apply_no_down()
     end
 
-    if managers.menu_component and managers.menu_component._ingame_contract_gui then
-        managers.menu_component._ingame_contract_gui:apply_no_down()
-    end
-
-    if managers.menu_component and managers.menu_component._contract_gui then
-        managers.menu_component._contract_gui:apply_no_down()
+    if managers.menu_component then
+        if managers.menu_component._ingame_contract_gui then
+            managers.menu_component._ingame_contract_gui:apply_no_down()
+        end
+        if managers.menu_component._contract_gui then
+            managers.menu_component._contract_gui:apply_no_down()
+        end
     end
 end
 
@@ -607,7 +608,8 @@ function NoDown.SetupHooks()
             "NetworkReceivedData",
             "NoDown_sync_game_settings_no_down",
             function(peer_id, id, no_down)
-                if id == "sync_game_settings_no_down" and Network:is_client() then
+                local peer = managers.network:session() and managers.network:session():peer(peer_id)
+                if id == "sync_game_settings_no_down" and peer:is_host() then
                     Global.game_settings.no_down = no_down == "true"
 
                     NoDown.ApplyNoDown()
@@ -675,16 +677,8 @@ function NoDown.SetupHooks()
                 local changed = Global.game_settings.no_down ~= job_data.no_down
 
                 Global.game_settings.no_down = job_data.no_down
-            end
-        )
 
-        Hooks:PostHook(
-            MenuCallbackHandler,
-            "start_job",
-            "NoDown_MenuCallbackHandler_start_job_post",
-            function(self, job_data)
                 if Network:is_server() then
-                    NoDown.SyncGameSettingsNoDown()
                     if Global.game_settings.no_down then
                         NoDown.AnnounceNoDown()
                         NoDown.RequestConfirmation()
@@ -696,6 +690,17 @@ function NoDown.SetupHooks()
         )
 
         Hooks:PostHook(
+            MenuCallbackHandler,
+            "start_job",
+            "NoDown_MenuCallbackHandler_start_job_post",
+            function(self, job_data)
+                if Network:is_server() then
+                    NoDown.SyncGameSettingsNoDown()
+                end
+            end
+        )
+
+        Hooks:PreHook(
             MenuCallbackHandler,
             "start_single_player_job",
             "NoDown_MenuCallbackHandler_start_single_player_job",
