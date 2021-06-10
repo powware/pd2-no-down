@@ -553,10 +553,10 @@ function NoDown.SetupHooks()
                 if not peer then
                     return
                 end
-                log("NoDown_ConnectionNetworkHandler_sync_game_settings")
-                Global.game_settings.no_down = false
 
-                NoDown.ApplyNoDown()
+                if not peer._has_no_down then
+                    Global.game_settings.no_down = false
+                end
             end
         )
 
@@ -567,7 +567,7 @@ function NoDown.SetupHooks()
             function(self, level, rank, stinger_index, character, mask_set, sender)
                 local peer = self._verify_sender(sender)
 
-                if not peer then
+                if not peer or mask_set == "remove" then
                     return
                 end
 
@@ -596,10 +596,16 @@ function NoDown.SetupHooks()
 
                         peer._announced_no_down = true
                     end
-                elseif peer:is_host() and mask_set == "true" then
-                    Global.game_settings.no_down = true
+                elseif peer:is_host() then
+                    peer._has_no_down = true
 
-                    NoDown.ApplyNoDown()
+                    if mask_set == "true" then
+                        Global.game_settings.no_down = true
+
+                        NoDown.ApplyNoDown()
+                    elseif mask_set == "false" then
+                        Global.game_settings.no_down = false
+                    end
                 end
             end
         )
@@ -610,7 +616,6 @@ function NoDown.SetupHooks()
             function(peer_id, id, no_down)
                 local peer = managers.network:session() and managers.network:session():peer(peer_id)
                 if id == "sync_game_settings_no_down" and peer:is_host() then
-                    log("NoDown_sync_game_settings_no_down")
                     Global.game_settings.no_down = no_down == "true"
 
                     NoDown.ApplyNoDown()
@@ -678,7 +683,6 @@ function NoDown.SetupHooks()
                 local changed = Global.game_settings.no_down ~= job_data.no_down
 
                 Global.game_settings.no_down = job_data.no_down
-                log("NoDown_MenuCallbackHandler_start_job_pre")
 
                 if Network:is_server() then
                     if Global.game_settings.no_down then
@@ -719,7 +723,6 @@ function NoDown.SetupHooks()
                 local mission_data = self:get_mission(mission_id)
 
                 if mission_data then
-                    log("NoDown_CrimeSpreeManager__setup_global_from_mission_id")
                     Global.game_settings.no_down = false
                 end
             end
@@ -749,8 +752,6 @@ function NoDown.SetupHooks()
                 auth_ticket,
                 sender)
                 if reply == 1 then
-                    log("NoDown_ClientNetworkSession_on_join_request_reply")
-
                     Global.game_settings.no_down = false
 
                     NoDown.ApplyNoDown()

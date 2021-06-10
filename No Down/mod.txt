@@ -14,17 +14,6 @@
 			}
 		}
 	],
-	"keybinds": [
-		{
-			"keybind_id": "no_down_keybind",
-			"name": "No Down",
-			"description": "",
-			"script_path": "log.lua",
-			"run_in_menu": true,
-			"run_in_game": true,
-			"localized": false
-		}
-	],
 	"hooks": [
 		{
 			"hook_id": "lib/network/handlers/unitnetworkhandler",
