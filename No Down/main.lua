@@ -113,7 +113,7 @@ function NoDown.RequestConfirmation(peer)
             30,
             function()
                 local temp_peer = managers.network:session() and managers.network:session():peer(peer_id)
-                if temp_peer and not NoDown.IsConfirmed(temp_peer) then
+                if temp_peer and Global.game_settings.no_down and not NoDown.IsConfirmed(temp_peer) then
                     managers.chat:_receive_message(
                         ChatManager.GAME,
                         "NO DOWN",
@@ -170,7 +170,7 @@ function NoDown.Confirm(peer, has_no_down)
     )
 
     if peer._loading_halted then
-        managers.network:session():_set_peer_loading_state(peer)
+        managers.network:session():finish_set_peer_loading_state(peer)
     end
 end
 
@@ -394,11 +394,11 @@ function NoDown.SetupHooks()
                     end
                 end
 
-                self:_set_peer_loading_state(peer)
+                self:finish_set_peer_loading_state(peer)
             end
         end
 
-        function HostNetworkSession:_set_peer_loading_state(peer)
+        function HostNetworkSession:finish_set_peer_loading_state(peer)
             peer._loading_halted = false
 
             for other_peer_id, other_peer in pairs(self._peers) do
@@ -584,7 +584,7 @@ function NoDown.SetupHooks()
                                 local temp_peer =
                                     managers.network:session() and managers.network:session():peer(peer_id)
 
-                                if temp_peer then
+                                if temp_peer and Global.game_settings.no_down then
                                     NoDown.AnnounceNoDown(temp_peer)
 
                                     if not NoDown.IsConfirmed(temp_peer) then
