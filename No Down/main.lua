@@ -109,6 +109,25 @@ function NoDown.RequestConfirmation(peer)
             ChatManager.GAME,
             managers.localization:text("no_down_confirmation_request")
         )
+    else
+        local peers = managers.network:session() and managers.network:session():peers()
+        if not peers then
+            return
+        end
+
+        for _, peer in pairs(peers) do
+            if peer and not peer:is_host() then
+                NoDown.RequestConfirmation(peer)
+            end
+        end
+    end
+end
+
+function NoDown.AddConfirmationTimeout(peer)
+    if peer then
+        if NoDown.IsConfirmed(peer) then
+            return
+        end
 
         local peer_id = peer:id()
 
@@ -136,7 +155,7 @@ function NoDown.RequestConfirmation(peer)
 
         for _, peer in pairs(peers) do
             if peer and not peer:is_host() then
-                NoDown.RequestConfirmation(peer)
+                NoDown.AddConfirmationTimeout(peer)
             end
         end
     end
@@ -394,12 +413,10 @@ function NoDown.SetupHooks()
             peer:set_loading(state)
 
             if not state then
-                if Global.game_settings.no_down then
-                    if not NoDown.IsConfirmed(peer) then
-                        peer._loading_halted = true
+                if Global.game_settings.no_down and not NoDown.IsConfirmed(peer) then
+                    peer._loading_halted = true
 
-                        return
-                    end
+                    return
                 end
 
                 self:finish_set_peer_loading_state(peer)
@@ -583,11 +600,11 @@ function NoDown.SetupHooks()
                     if mask_set == "confirm" then
                         NoDown.Confirm(peer, true)
                         peer._has_no_down = true
-                    elseif Global.game_settings.no_down and not peer._announced_no_down then
+                    elseif Global.game_settings.no_down and not peer._notification_queued then
                         local peer_id = peer:id()
                         DelayedCalls:Add(
                             "NoDown_NotifyNoDown" .. tostring(peer_id),
-                            1.5,
+                            2,
                             function()
                                 local temp_peer =
                                     managers.network:session() and managers.network:session():peer(peer_id)
@@ -602,7 +619,9 @@ function NoDown.SetupHooks()
                             end
                         )
 
-                        peer._announced_no_down = true
+                        NoDown.AddConfirmationTimeout(peer)
+
+                        peer._notification_queued = true
                     end
                 elseif peer:is_host() and mask_set ~= "remove" then
                     peer._has_no_down = true
@@ -697,6 +716,7 @@ function NoDown.SetupHooks()
 
                     NoDown.AnnounceNoDown()
                     NoDown.RequestConfirmation()
+                    NoDown.AddConfirmationTimeout()
                 elseif changed then
                     NoDown.AnnounceNoDown()
                 end
