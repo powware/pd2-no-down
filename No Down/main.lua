@@ -122,7 +122,7 @@ function NoDown.RequestConfirmation(peer)
                         ChatManager.GAME,
                         "NO DOWN",
                         temp_peer:name() .. " has timed out.",
-                        tweak_data.system_chat_color
+                        NoDown.color
                     )
                     managers.network:session():remove_peer(temp_peer, temp_peer:id())
                 end
@@ -174,7 +174,7 @@ function NoDown.Confirm(peer, has_no_down)
         ChatManager.GAME,
         "NO DOWN",
         peer:name() .. (has_no_down and " has No Down installed." or " has confirmed."),
-        tweak_data.system_chat_color
+        NoDown.color
     )
 
     if peer._loading_halted then
