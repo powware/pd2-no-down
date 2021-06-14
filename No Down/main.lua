@@ -567,7 +567,7 @@ function NoDown.SetupHooks()
             function(self, level, rank, stinger_index, character, mask_set, sender)
                 local peer = self._verify_sender(sender)
 
-                if not peer or mask_set == "remove" then
+                if not peer then
                     return
                 end
 
@@ -596,7 +596,7 @@ function NoDown.SetupHooks()
 
                         peer._announced_no_down = true
                     end
-                elseif peer:is_host() then
+                elseif peer:is_host() and mask_set ~= "remove" then
                     peer._has_no_down = true
 
                     if mask_set == "true" then
