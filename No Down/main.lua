@@ -84,7 +84,11 @@ function NoDown.AnnounceNoDown(peer)
                 managers.localization:text("no_down_announcement_disabled")
         )
     else
-        local peers = managers.network:session():peers()
+        local peers = managers.network:session() and managers.network:session():peers()
+        if not peers then
+            return
+        end
+
         for _, peer in pairs(peers) do
             if peer and not peer:is_host() then
                 NoDown.AnnounceNoDown(peer)
@@ -125,7 +129,11 @@ function NoDown.RequestConfirmation(peer)
             end
         )
     else
-        local peers = managers.network:session():peers()
+        local peers = managers.network:session() and managers.network:session():peers()
+        if not peers then
+            return
+        end
+
         for _, peer in pairs(peers) do
             if peer and not peer:is_host() then
                 NoDown.RequestConfirmation(peer)
@@ -684,13 +692,13 @@ function NoDown.SetupHooks()
 
                 Global.game_settings.no_down = job_data.no_down
 
-                if Network:is_server() then
-                    if Global.game_settings.no_down then
-                        NoDown.AnnounceNoDown()
-                        NoDown.RequestConfirmation()
-                    elseif changed then
-                        NoDown.AnnounceNoDown()
-                    end
+                if Global.game_settings.no_down then
+                    job_data.one_down = true
+
+                    NoDown.AnnounceNoDown()
+                    NoDown.RequestConfirmation()
+                elseif changed then
+                    NoDown.AnnounceNoDown()
                 end
             end
         )
