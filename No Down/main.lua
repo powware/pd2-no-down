@@ -222,132 +222,30 @@ end
 
 function NoDown.SetupHooks()
     if RequiredScript == "lib/network/handlers/unitnetworkhandler" then
-        function UnitNetworkHandler:sync_player_movement_state(unit, state, down_time, unit_id_str, sender)
-            if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
-                return
-            end
-
-            local peer = self._verify_sender(sender)
-
-            if not peer then
-                return
-            end
-
-            self:_chk_unit_too_early(
-                unit,
-                unit_id_str,
-                "sync_player_movement_state",
-                1,
-                unit,
-                state,
-                down_time,
-                unit_id_str,
-                sender
-            )
-
-            if not alive(unit) then
-                return
-            end
-
-            if not peer:is_host() and (not alive(peer:unit()) or peer:unit():key() ~= unit:key()) then
-                Application:error(
-                    "[UnitNetworkHandler:sync_player_movement_state] Client is trying to change someone else movement state",
-                    peer:id(),
-                    unit:key()
-                )
-
-                return
-            end
-
-            Application:trace(
-                "[UnitNetworkHandler:sync_player_movement_state]: ",
-                unit:movement():current_state_name(),
-                "->",
-                state
-            )
-
-            local local_peer = managers.network:session():local_peer()
-
-            if local_peer:unit() and unit:key() == local_peer:unit():key() then
-                local valid_transitions = {
-                    standard = {
-                        arrested = true,
-                        incapacitated = true,
-                        carry = true,
-                        bleed_out = true,
-                        tased = true
-                    },
-                    carry = {
-                        arrested = true,
-                        incapacitated = true,
-                        standard = true,
-                        bleed_out = true,
-                        tased = true
-                    },
-                    mask_off = {
-                        arrested = true,
-                        carry = true,
-                        standard = true
-                    },
-                    bleed_out = {
-                        carry = true,
-                        fatal = true,
-                        standard = true
-                    },
-                    fatal = {
-                        carry = true,
-                        standard = true
-                    },
-                    arrested = {
-                        carry = true,
-                        standard = true
-                    },
-                    tased = {
-                        incapacitated = true,
-                        carry = true,
-                        standard = true
-                    },
-                    incapacitated = {
-                        carry = true,
-                        standard = true
-                    },
-                    clean = {
-                        arrested = true,
-                        carry = true,
-                        mask_off = true,
-                        standard = true,
-                        civilian = true
-                    },
-                    civilian = {
-                        arrested = true,
-                        carry = true,
-                        clean = true,
-                        standard = true,
-                        mask_off = true
-                    }
-                }
-
-                if unit:movement():current_state_name() == state then
+        Hooks:PostHook(
+            UnitNetworkHandler,
+            "sync_player_movement_state",
+            "NoDown_UnitNetworkHandler?sync_player_movement_state",
+            function(self, unit, state, down_time, unit_id_str, sender)
+                if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
                     return
                 end
 
-                if
-                    unit:movement():current_state_name() and
-                        valid_transitions[unit:movement():current_state_name()][state]
-                 then
-                    managers.player:set_player_state(state)
-                else
-                    debug_pause_unit(
-                        unit,
-                        "[UnitNetworkHandler:sync_player_movement_state] received invalid transition",
-                        unit,
-                        unit:movement():current_state_name(),
-                        "->",
-                        state
-                    )
+                local peer = self._verify_sender(sender)
+
+                if not peer or not alive(unit) then
+                    return
                 end
-            else
-                unit:movement():sync_movement_state(state, down_time)
+
+                if not peer:is_host() and (not alive(peer:unit()) or peer:unit():key() ~= unit:key()) then
+                    return
+                end
+
+                local local_peer = managers.network:session():local_peer()
+
+                if local_peer:unit() and unit:key() == local_peer:unit():key() then
+                    return
+                end
 
                 if Network:is_server() and Global.game_settings.no_down and state == "bleed_out" then
                     local member_downed,
@@ -359,6 +257,7 @@ function NoDown.SetupHooks()
                         hostages_killed,
                         respawn_penalty,
                         old_plr_entry = peer:_get_old_entry()
+
                     peer:send_queued_sync(
                         "spawn_dropin_penalty",
                         true,
@@ -370,7 +269,7 @@ function NoDown.SetupHooks()
                     )
                 end
             end
-        end
+        )
     elseif RequiredScript == "lib/units/beings/player/playerdamage" then
         Hooks:PreHook(
             PlayerDamage,
