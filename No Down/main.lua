@@ -225,7 +225,7 @@ function NoDown.SetupHooks()
         Hooks:PostHook(
             UnitNetworkHandler,
             "sync_player_movement_state",
-            "NoDown_UnitNetworkHandler?sync_player_movement_state",
+            "NoDown_UnitNetworkHandler_sync_player_movement_state",
             function(self, unit, state, down_time, unit_id_str, sender)
                 if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
                     return
