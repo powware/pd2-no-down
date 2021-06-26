@@ -548,6 +548,16 @@ function NoDown.SetupHooks()
                 end
             end
         )
+    elseif RequiredScript == "lib/states/ingamewaitingforrespawn" then
+        local IngameWaitingForRespawnState_request_player_spawn_original =
+            IngameWaitingForRespawnState.request_player_spawn
+        function IngameWaitingForRespawnState.request_player_spawn(peer_to_spawn)
+            if Global.game_settings.no_down then
+                return
+            end
+
+            IngameWaitingForRespawnState_request_player_spawn_original(peer_to_spawn)
+        end
     elseif RequiredScript == "lib/managers/menu/crimenetcontractgui" then
         function CrimeNetContractGui:set_no_down(no_down)
             local job_data = self._node:parameters().menu_component_data

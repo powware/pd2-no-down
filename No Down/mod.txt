@@ -72,6 +72,10 @@
 			"script_path": "main.lua"
 		},
 		{
+			"hook_id": "lib/states/ingamewaitingforrespawn",
+			"script_path": "main.lua"
+		},
+		{
 			"hook_id": "lib/managers/menu/contractboxgui",
 			"script_path": "contractboxgui.lua"
 		},
