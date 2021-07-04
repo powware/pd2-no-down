@@ -461,7 +461,11 @@ function NoDown.SetupHooks()
                 end
 
                 if Network:is_server() and Global.game_settings.no_down and not NoDown.IsConfirmed(peer) then
-                    if message == "confirm" or message == "'confirm'" then
+                    local lower = string.lower(message)
+                    local stripped = string.gsub(lower, " ", "")
+                    stripped = string.gsub(stripped, "'", "")
+
+                    if stripped == "confirm" then
                         NoDown.Confirm(peer)
                     end
                 end
