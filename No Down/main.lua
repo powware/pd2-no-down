@@ -1,7 +1,8 @@
 NoDown = NoDown or {}
 NoDown.default_settings = {
     confirmed_peers = {},
-    search_no_down_lobbies = 1
+    search_no_down_lobbies = 1,
+    disable_uncustody = 1
 }
 NoDown.color = Color(1, 0.1, 1, 0.5)
 
@@ -552,7 +553,10 @@ function NoDown.SetupHooks()
         local IngameWaitingForRespawnState_request_player_spawn_original =
             IngameWaitingForRespawnState.request_player_spawn
         function IngameWaitingForRespawnState.request_player_spawn(peer_to_spawn)
-            if Global.game_settings.no_down then
+            if
+                (Global.game_settings.no_down and NoDown.settings.disable_uncustody == 1) or
+                    NoDown.settings.disable_uncustody == 2
+             then
                 return
             end
 
