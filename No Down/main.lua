@@ -151,7 +151,7 @@ function NoDown.AddConfirmationTimeout(peer)
                         temp_peer:name() .. " has timed out.",
                         NoDown.color
                     )
-                    managers.network:session():remove_peer(temp_peer, temp_peer:id())
+                    managers.network:session():remove_peer(temp_peer, temp_peer:id(), "auth_fail")
                 end
             end
         )
