@@ -170,10 +170,11 @@ function NoDown.AddConfirmationTimeout(peer)
 end
 
 function NoDown.RemindConfirmation(peer)
+    peer:send_after_load("send_chat_message", ChatManager.GAME, managers.localization:text("no_down_description"))
     peer:send_after_load(
         "send_chat_message",
         ChatManager.GAME,
-        managers.localization:text("no_down_confirmation_reminder")
+        managers.localization:text("no_down_confirmation_request")
     )
 end
 
