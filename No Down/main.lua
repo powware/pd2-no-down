@@ -110,6 +110,13 @@ function NoDown.RequestConfirmation(peer)
             ChatManager.GAME,
             managers.localization:text("no_down_confirmation_request")
         )
+
+        managers.chat:_receive_message(
+            ChatManager.GAME,
+            managers.localization:to_upper_text("no_down_modifier_name"),
+            peer:name() .. " was requested to confirm.",
+            NoDown.color
+        )
     else
         local peers = managers.network:session() and managers.network:session():peers()
         if not peers then
