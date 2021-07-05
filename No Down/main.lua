@@ -147,7 +147,7 @@ function NoDown.AddConfirmationTimeout(peer)
                 if temp_peer and Global.game_settings.no_down and not NoDown.IsConfirmed(temp_peer) then
                     managers.chat:_receive_message(
                         ChatManager.GAME,
-                        "NO DOWN",
+                        managers.localization:to_upper_text("no_down_modifier_name"),
                         temp_peer:name() .. " has timed out.",
                         NoDown.color
                     )
@@ -196,14 +196,14 @@ function NoDown.Confirm(peer, has_no_down)
             ChatManager.GAME,
             managers.localization:text("no_down_confirmation_confirmation")
         )
-    end
 
-    managers.chat:_receive_message(
-        ChatManager.GAME,
-        "NO DOWN",
-        peer:name() .. (has_no_down and " has No Down installed." or " has confirmed."),
-        NoDown.color
-    )
+        managers.chat:_receive_message(
+            ChatManager.GAME,
+            managers.localization:to_upper_text("no_down_modifier_name"),
+            peer:name() .. " has confirmed.",
+            NoDown.color
+        )
+    end
 
     if peer._loading_halted then
         managers.network:session():finish_set_peer_loading_state(peer)
