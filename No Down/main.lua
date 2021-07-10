@@ -565,10 +565,7 @@ function NoDown.SetupHooks()
         local IngameWaitingForRespawnState_request_player_spawn_original =
             IngameWaitingForRespawnState.request_player_spawn
         function IngameWaitingForRespawnState.request_player_spawn(peer_to_spawn)
-            if
-                (Global.game_settings.no_down and NoDown.settings.disable_uncustody == 1) or
-                    NoDown.settings.disable_uncustody == 2
-             then
+            if Global.game_settings.no_down or NoDown.settings.disable_uncustody == 2 then
                 return
             end
 
