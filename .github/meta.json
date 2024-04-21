@@ -3,6 +3,6 @@
         "ident": "NoDown",
         "hash": "%HASH%",
         "patchnotes_url": "https://github.com/powware/pd2-no-down",
-        "download_url": "https://github.com/powware/pd2-no-down/releases/download/refs%2Fheads%2Fmaster/NoDown.zip"
+        "download_url": "https://github.com/powware/pd2-no-down/releases/download/master/NoDown.zip"
     }
 ]
