@@ -16,12 +16,16 @@
 	],
 	"hooks": [
 		{
-			"hook_id": "lib/network/handlers/unitnetworkhandler",
+			"hook_id": "core/lib/system/coresystem",
 			"script_path": "main.lua"
 		},
 		{
-			"hook_id": "lib/network/matchmaking/networkmatchmakingsteam",
-			"script_path": "networkmatchmakingsteam.lua"
+			"hook_id": "lib/states/ingamewaitingforrespawn",
+			"script_path": "ingamewaitingforrespawn.lua"
+		},
+		{
+			"hook_id": "lib/network/handlers/unitnetworkhandler",
+			"script_path": "unitnetworkhandler.lua"
 		},
 		{
 			"hook_id": "lib/network/matchmaking/networkmatchmakingepic",
@@ -29,55 +33,51 @@
 		},
 		{
 			"hook_id": "lib/units/beings/player/playerdamage",
-			"script_path": "main.lua"
+			"script_path": "playerdamage.lua"
 		},
 		{
 			"hook_id": "lib/network/base/hostnetworksession",
-			"script_path": "main.lua"
+			"script_path": "hostnetworksession.lua"
 		},
 		{
 			"hook_id": "lib/network/base/networkpeer",
-			"script_path": "main.lua"
+			"script_path": "networkpeer.lua"
 		},
 		{
 			"hook_id": "lib/managers/menu/menulobbyrenderer",
-			"script_path": "main.lua"
+			"script_path": "menulobbyrenderer.lua"
 		},
 		{
 			"hook_id": "lib/network/base/handlers/connectionnetworkhandler",
-			"script_path": "main.lua"
+			"script_path": "connectionnetworkhandler.lua"
 		},
 		{
 			"hook_id": "lib/managers/menu/crimenetcontractgui",
-			"script_path": "main.lua"
+			"script_path": "crimenetcontractgui.lua"
 		},
 		{
 			"hook_id": "lib/managers/menu/menucomponentmanager",
-			"script_path": "main.lua"
+			"script_path": "menucomponentmanager.lua"
 		},
 		{
 			"hook_id": "lib/managers/menumanager",
-			"script_path": "main.lua"
+			"script_path": "menumanager.lua"
 		},
 		{
 			"hook_id": "lib/managers/menumanagerpd2",
-			"script_path": "main.lua"
+			"script_path": "menumanagerpd2.lua"
 		},
 		{
 			"hook_id": "lib/managers/crimespreemanager",
-			"script_path": "main.lua"
+			"script_path": "crimespreemanager.lua"
 		},
 		{
 			"hook_id": "lib/network/base/clientnetworksession",
-			"script_path": "main.lua"
+			"script_path": "clientnetworksession.lua"
 		},
 		{
 			"hook_id": "core/lib/managers/menu/coremenunode",
-			"script_path": "main.lua"
-		},
-		{
-			"hook_id": "lib/states/ingamewaitingforrespawn",
-			"script_path": "main.lua"
+			"script_path": "coremenunode.lua"
 		},
 		{
 			"hook_id": "lib/managers/menu/contractboxgui",
