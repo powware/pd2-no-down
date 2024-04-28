@@ -27,3 +27,24 @@ Hooks:PostHook(UnitNetworkHandler, "sync_player_movement_state", "NoDown_UnitNet
             peer:send_queued_sync("spawn_dropin_penalty", true, true, health, false, used_cable_ties, used_body_bags)
         end
     end)
+
+Hooks:PostHook(UnitNetworkHandler, "set_revives", "NoDown_UnitNetworkHandler_set_revives",
+    function(self, unit, revive_amount, is_max, sender)
+        if not alive(unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) or
+            not Global.game_settings.no_down then
+            return
+        end
+
+        local peer = self._verify_sender(sender)
+
+        if not peer then
+            return
+        end
+
+        local peer_id = peer:id()
+        local character_data = managers.criminals:character_data_by_peer_id(peer_id)
+
+        if character_data and character_data.panel_id then
+            managers.hud:set_teammate_revives(character_data.panel_id, 0)
+        end
+    end)

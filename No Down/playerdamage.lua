@@ -13,6 +13,7 @@ function PlayerDamage:_send_set_revives(is_max)
 
     if Global.game_settings.no_down then
         revives = 0
+        is_max = false
     end
 
     managers.hud:set_teammate_revives(HUDManager.PLAYER_PANEL, revives)
