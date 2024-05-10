@@ -269,3 +269,7 @@ function CrimeNetGui:check_job_pressed(x, y)
         end
     end
 end
+
+function CrimeNetManager:set_max_active_server_jobs(max_server_jobs)
+	self._max_active_server_jobs = 60
+end

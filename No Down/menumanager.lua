@@ -15,7 +15,7 @@ function MenuCallbackHandler:choice_no_down_filter(item)
     NoDown.settings.search_no_down_lobbies = item:value()
     if NoDown.settings.search_no_down_lobbies ~= 0 then
         NoDown.toggle_one_down_lobby:set_value("on")
-        MenuCallbackHandler:chocie_one_down_filter(NoDown.toggle_one_down_lobby)
+        MenuCallbackHandler:choice_one_down_filter(NoDown.toggle_one_down_lobby)
     end
     NoDown:Save()
 end
@@ -26,3 +26,14 @@ Hooks:PostHook(MenuCrimeNetFiltersInitiator, "modify_node", "NoDown_MenuCrimeNet
             original_node:item("choice_no_down_lobby"):set_value(NoDown.settings.search_no_down_lobbies)
         end
     end)
+
+function MenuCallbackHandler:choice_max_lobbies_filter(item)
+    if not managers.crimenet then
+        return
+    end
+
+    local max_server_jobs_filter = 75
+
+    managers.network.matchmake:set_lobby_return_count(max_server_jobs_filter)
+    managers.user:set_setting("crimenet_filter_max_servers", max_server_jobs_filter)
+end

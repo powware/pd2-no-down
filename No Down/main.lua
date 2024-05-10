@@ -33,8 +33,6 @@ function NoDown:Setup()
     if not self.settings then
         self:Load()
     end
-
-    self.SetupHooks()
 end
 
 -- load settings from file
