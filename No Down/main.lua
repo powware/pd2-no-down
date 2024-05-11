@@ -1,8 +1,10 @@
 NoDown = NoDown or {}
 NoDown.default_settings = {
+    buy_no_down = false,
     confirmed_peers = {},
     search_no_down_lobbies = 1,
-    disable_uncustody = 1
+    disable_uncustody = 1,
+    timeout = 45
 }
 NoDown.color = Color(1, 0.1, 1, 0.5)
 
@@ -10,8 +12,6 @@ NoDown._mod_path = ModPath
 NoDown._options_menu_file = NoDown._mod_path .. "menu/options.json"
 NoDown._save_path = SavePath
 NoDown._save_file = NoDown._save_path .. "no_down.json"
-NoDown.toggle_one_downs = {}
-NoDown.toggle_no_downs = {}
 NoDown.toggle_one_down_lobby = nil
 
 local function deep_copy(orig)
@@ -101,7 +101,8 @@ function NoDown.RequestConfirmation(peer)
 
         peer:send_after_load("send_chat_message", ChatManager.GAME, managers.localization:text("no_down_description"))
         peer:send_after_load("send_chat_message", ChatManager.GAME,
-            managers.localization:text("no_down_confirmation_request"))
+            managers.localization:text("no_down_confirmation_request_1") .. NoDown.settings.timeout ..
+                managers.localization:text("no_down_confirmation_request_2"))
 
         managers.chat:_receive_message(ChatManager.GAME, managers.localization:to_upper_text("no_down_modifier_name"),
             peer:name() .. " was requested to confirm.", NoDown.color)
@@ -127,7 +128,7 @@ function NoDown.AddConfirmationTimeout(peer)
 
         local peer_id = peer:id()
 
-        DelayedCalls:Add("NoDown_ConfirmationTimeoutFor" .. tostring(peer_id), 30, function()
+        DelayedCalls:Add("NoDown_ConfirmationTimeoutFor" .. tostring(peer_id), NoDown.settings.timeout, function()
             local temp_peer = managers.network:session() and managers.network:session():peer(peer_id)
             if temp_peer and Global.game_settings.no_down and not NoDown.IsConfirmed(temp_peer) then
                 managers.chat:_receive_message(ChatManager.GAME,
@@ -153,7 +154,8 @@ end
 function NoDown.RemindConfirmation(peer)
     peer:send_after_load("send_chat_message", ChatManager.GAME, managers.localization:text("no_down_description"))
     peer:send_after_load("send_chat_message", ChatManager.GAME,
-        managers.localization:text("no_down_confirmation_request"))
+        managers.localization:text("no_down_confirmation_request_1") .. NoDown.settings.timeout ..
+            managers.localization:text("no_down_confirmation_request_2"))
 end
 
 function NoDown.IsConfirmed(peer)

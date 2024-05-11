@@ -1,7 +1,8 @@
 {
     "no_down_modifier_name": "生死一线",
     "no_down_description": "玩家被击倒后会立刻被捕而非倒地，被泰瑟和幻影特工击倒除外。九命猫技能在本模组下无效。",
-    "no_down_confirmation_request": "请在30秒内输入并发送 'confirm' 以确认加入游戏，否则你会被自动踢出。",
+    "no_down_confirmation_request_1": "请在",
+    "no_down_confirmation_request_2": "秒内输入并发送 'confirm' 以确认加入游戏，否则你会被自动踢出。",
     "no_down_confirmation_confirmation": "玩家已确认游玩“生死一线”模组。",
     "no_down_announcement_enabled": "“生死一线”模组已启用",
     "no_down_announcement_disabled": "“生死一线”模组已禁用",

@@ -12,7 +12,7 @@ function PlayerDamage:_send_set_revives(is_max)
     local revives = Application:digest_value(self._revives, false)
 
     if Global.game_settings.no_down then
-        revives = 0
+        revives = 1
         is_max = false
     end
 

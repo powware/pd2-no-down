@@ -45,6 +45,6 @@ Hooks:PostHook(UnitNetworkHandler, "set_revives", "NoDown_UnitNetworkHandler_set
         local character_data = managers.criminals:character_data_by_peer_id(peer_id)
 
         if character_data and character_data.panel_id then
-            managers.hud:set_teammate_revives(character_data.panel_id, 0)
+            managers.hud:set_teammate_revives(character_data.panel_id, 1)
         end
     end)

@@ -4,6 +4,7 @@ Hooks:PreHook(MenuNode, "add_item", "NoDown_MenuNode_add_item", function(self, i
     local item_name = item:name()
     if (self._parameters.name == "crimenet_contract_host" or self._parameters.name == "crimenet_contract_singleplayer") then
         if item_name == "divider_test2" then
+
             local params = {
                 callback = "choice_crimenet_no_down",
                 name = "toggle_no_down",
@@ -44,13 +45,14 @@ Hooks:PreHook(MenuNode, "add_item", "NoDown_MenuNode_add_item", function(self, i
             }
             local toggle_no_down = self:create_item(data_node, params)
 
-            toggle_no_down:set_value("off")
+            toggle_no_down:set_value(temp_no_down.settings.buy_no_down and "on" or "off")
             toggle_no_down:set_enabled(true)
 
             self:add_item(toggle_no_down)
-            temp_no_down.toggle_no_downs[self._parameters.name] = toggle_no_down
         elseif item_name == "toggle_one_down" then
-            temp_no_down.toggle_one_downs[self._parameters.name] = item
+            if temp_no_down.settings.buy_no_down then
+                item:set_value("on")
+            end
         end
     elseif self._parameters.name == "crimenet_filters" then
         if item_name == "divider_crime_spree" then
