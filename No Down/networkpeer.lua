@@ -1,7 +1,7 @@
 Hooks:PostHook(NetworkPeer, "set_waiting_for_player_ready", "NoDown_NetworkPeer_set_waiting_for_player_ready",
     function(self, state)
         if Network:is_server() and Global.game_settings.no_down and not NoDown.IsConfirmed(self) and state then
-            NoDown.RemindConfirmation(self)
+            NoDown.SendDescription(self)
         end
     end)
 

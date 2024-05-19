@@ -93,16 +93,20 @@ function NoDown.AnnounceNoDown(peer)
     end
 end
 
+function NoDown.SendDescription(peer)
+    peer:send_after_load("send_chat_message", ChatManager.GAME, managers.localization:text("no_down_description"))
+    peer:send_after_load("send_chat_message", ChatManager.GAME,
+        managers.localization:text("no_down_confirmation_request_1") .. NoDown.settings.timeout ..
+            managers.localization:text("no_down_confirmation_request_2"))
+end
+
 function NoDown.RequestConfirmation(peer)
     if peer then
         if NoDown.IsConfirmed(peer) then
             return
         end
 
-        peer:send_after_load("send_chat_message", ChatManager.GAME, managers.localization:text("no_down_description"))
-        peer:send_after_load("send_chat_message", ChatManager.GAME,
-            managers.localization:text("no_down_confirmation_request_1") .. NoDown.settings.timeout ..
-                managers.localization:text("no_down_confirmation_request_2"))
+        NoDown.SendDescription(peer)
 
         managers.chat:_receive_message(ChatManager.GAME, managers.localization:to_upper_text("no_down_modifier_name"),
             peer:name() .. " was requested to confirm.", NoDown.color)
@@ -149,13 +153,6 @@ function NoDown.AddConfirmationTimeout(peer)
             end
         end
     end
-end
-
-function NoDown.RemindConfirmation(peer)
-    peer:send_after_load("send_chat_message", ChatManager.GAME, managers.localization:text("no_down_description"))
-    peer:send_after_load("send_chat_message", ChatManager.GAME,
-        managers.localization:text("no_down_confirmation_request_1") .. NoDown.settings.timeout ..
-            managers.localization:text("no_down_confirmation_request_2"))
 end
 
 function NoDown.IsConfirmed(peer)
