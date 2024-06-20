@@ -52,11 +52,9 @@ function ContractBoxGui:apply_no_down()
     end
 end
 
-Hooks:PostHook(
-    ContractBoxGui,
-    "create_contract_box",
-    "NoDown_ContractBoxGui_create_contract_box",
+Hooks:PostHook(ContractBoxGui, "create_contract_box", "NoDown_ContractBoxGui_create_contract_box",
     function(self, ws, node)
-        self:apply_no_down()
-    end
-)
+        if self.apply_no_down then
+            self:apply_no_down()
+        end
+    end)

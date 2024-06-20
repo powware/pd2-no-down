@@ -17,6 +17,8 @@ end
 Hooks:PostHook(CrimeNetContractGui, "init", "NoDown_CrimeNetContractGui_init", function(self, ws, fullscreen_ws, node)
     local job_data = self._node:parameters().menu_component_data
     if job_data.no_down == 1 then
-        self:apply_no_down()
+        if self.apply_no_down then
+            self:apply_no_down()
+        end
     end
 end)

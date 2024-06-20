@@ -21,11 +21,8 @@ function HUDMissionBriefing:apply_no_down()
     one_down_text:set_righttop(pg_text:left() - 10, pg_text:top())
 end
 
-Hooks:PostHook(
-    HUDMissionBriefing,
-    "init",
-    "NoDown_HUDMissionBriefing_init",
-    function(self, ws, node)
+Hooks:PostHook(HUDMissionBriefing, "init", "NoDown_HUDMissionBriefing_init", function(self, ws, node)
+    if self.apply_no_down then
         self:apply_no_down()
     end
-)
+end)

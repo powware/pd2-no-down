@@ -16,11 +16,8 @@ function IngameContractGui:apply_no_down()
     end
 end
 
-Hooks:PostHook(
-    IngameContractGui,
-    "init",
-    "NoDown_IngameContractGui_init",
-    function(self, ws, node)
+Hooks:PostHook(IngameContractGui, "init", "NoDown_IngameContractGui_init", function(self, ws, node)
+    if self.apply_no_down then
         self:apply_no_down()
     end
-)
+end)
