@@ -181,19 +181,19 @@ function NoDown.Confirm(peer, has_no_down)
 end
 
 function NoDown.ApplyNoDown()
-    if managers.hud and managers.hud._hud_mission_briefing then
+    if managers.hud and managers.hud._hud_mission_briefing and managers.hud._hud_mission_briefing.apply_no_down then
         managers.hud._hud_mission_briefing:apply_no_down()
     end
 
-    if managers.hud and managers.hud._hud_statsscreen then
+    if managers.hud and managers.hud._hud_statsscreen and managers.hud._hud_statsscreen.apply_no_down then
         managers.hud._hud_statsscreen:apply_no_down()
     end
 
     if managers.menu_component then
-        if managers.menu_component._ingame_contract_gui then
+        if managers.menu_component._ingame_contract_gui and managers.menu_component._ingame_contract_gui.apply_no_down then
             managers.menu_component._ingame_contract_gui:apply_no_down()
         end
-        if managers.menu_component._contract_gui then
+        if managers.menu_component._contract_gui and managers.menu_component._contract_gui.apply_no_down then
             managers.menu_component._contract_gui:apply_no_down()
         end
     end
